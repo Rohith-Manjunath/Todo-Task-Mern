@@ -6,6 +6,7 @@ const { dbConnection } = require("./config/dbConnection");
 const { PORT, MONGODB_URI } = process.env;
 const TaskRoute = require("./routes/taskRoutes");
 
+app.use(express.json());
 app.use(cors());
 app.use("/api", TaskRoute);
 
