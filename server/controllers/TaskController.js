@@ -101,6 +101,41 @@ const isCompleted = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Search tasks by title
+const searchTasks = async (req, res) => {
+  try {
+    const searchQuery = req.query.title; // Extract search query from URL parameters
+    console.log("searchQuery", req.query);
+
+    if (!searchQuery) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide a search query",
+      });
+    }
+
+    // Using a regular expression for case-insensitive search
+    const tasks = await Task.find({
+      title: { $regex: searchQuery, $options: "i" },
+    });
+
+    if (tasks.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No tasks found matching your search",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: tasks,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createTask,
   getTasks,
@@ -109,4 +144,5 @@ module.exports = {
   Home,
   isCompleted,
   getTaskById,
+  searchTasks,
 };

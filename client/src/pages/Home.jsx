@@ -4,13 +4,10 @@ import { FaEdit } from "react-icons/fa";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
-  DrawerDescription,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-  DrawerTrigger,
 } from "@/components/ui/drawer";
 import { Button } from "../components/ui/button";
 import {
@@ -22,24 +19,35 @@ import {
   useUpdateTaskMutation,
 } from "../Redux/authApi";
 import { useToast } from "@/hooks/use-toast";
+import { FaArrowLeft } from "react-icons/fa";
 
-// Create an array of objects representing dates and days
-const daysInWeek = [
-  { date: 21, day: "SUN" },
-  { date: 22, day: "MON" },
-  { date: 23, day: "TUE" },
-  { date: 24, day: "WED" },
-  { date: 25, day: "THU" },
-  { date: 26, day: "FRI" },
-  { date: 27, day: "SAT" },
-];
+// Function to get dates from last Sunday to next Saturday
+const getWeekDates = () => {
+  const today = new Date();
+  const currentDay = today.getDay();
 
-// Example task array
-const tasks = [
-  { id: 1, title: "Task 1", completed: false },
-  { id: 2, title: "Task 2", completed: true },
-  { id: 3, title: "Task 3", completed: false },
-];
+  // Find last Sunday
+  const lastSunday = new Date(today);
+  lastSunday.setDate(today.getDate() - currentDay);
+
+  // Create array to store dates for the week
+  const weekDates = [];
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(lastSunday);
+    day.setDate(lastSunday.getDate() + i);
+    weekDates.push({
+      date: day.getDate(),
+      day: day.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase(),
+    });
+  }
+
+  return weekDates;
+};
+
+const daysInWeek = getWeekDates();
+// Get the current date
+const today = new Date();
+const currentDate = today.getDate();
 
 const ProgressBar = ({ progress }) => {
   return (
@@ -70,6 +78,9 @@ const Home = () => {
   const [createTask] = useCreateTaskMutation();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [tasks, setTasks] = useState([]);
+  const [debouncedQuery, setDebouncedQuery] = useState("");
 
   const handleDeleteTask = async (id) => {
     try {
@@ -78,6 +89,9 @@ const Home = () => {
         description: data?.message,
         className: "bg-green-500 text-white font-semibold tracking-wide", // Custom background and text color
       });
+      if (debouncedQuery) {
+        getData(debouncedQuery);
+      }
     } catch (e) {
       toast({
         description: e?.data?.message,
@@ -91,6 +105,9 @@ const Home = () => {
         description: data?.message,
         className: "bg-green-500 text-white font-semibold tracking-wide", // Custom background and text color
       });
+      if (debouncedQuery) {
+        getData(debouncedQuery);
+      }
     } catch (e) {
       toast({
         description: e?.data?.message,
@@ -144,6 +161,9 @@ const Home = () => {
       toast({
         description: data?.message,
       });
+      if (debouncedQuery) {
+        getData(debouncedQuery);
+      }
       setTaskTitle("");
       setTaskDescription("");
       setTaskPriority("");
@@ -157,6 +177,50 @@ const Home = () => {
       });
     }
   };
+
+  useEffect(() => {
+    // Set a timeout to update the debounced query after the user stops typing
+    const handler = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 500); // 500ms debounce time
+
+    // Cleanup function to clear the timeout if the user types again before the delay ends
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery]); // Effect runs whenever searchQuery changes
+
+  useEffect(() => {
+    // Trigger the data fetch only when the debounced query changes
+    if (debouncedQuery) {
+      getData(debouncedQuery);
+    }
+  }, [debouncedQuery]);
+
+  const getData = async (query) => {
+    try {
+      let response = await fetch(
+        `http://localhost:4000/api/tasks/search?title=${query}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      let data = await response.json();
+      setTasks(data.data); // Assuming the response has a `data` field with the tasks
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    }
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery("");
+    setDebouncedQuery("");
+    setTasks([]);
+  };
+
   // Calculate total and completed tasks
   const totalTasks = data?.length;
   const completedTasks = data?.filter((task) => task?.isCompleted).length;
@@ -165,26 +229,89 @@ const Home = () => {
   const progressValue =
     totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
   return (
-    <div className="w-full max-w-[900px] h-[100vh] flex items-center justify-start pt-4 flex-col gap-4 mx-auto border-none outline-none">
+    <div className="w-full  max-w-[900px] h-[100vh] flex items-center justify-start pt-4 flex-col gap-4 mx-auto border-none outline-none">
       <div className="flex items-center justify-between gap-4 border w-full border-gray-300 rounded-md px-4 py-2">
+        {debouncedQuery && (
+          <FaArrowLeft
+            className="cursor-pointer active:scale:90 transition-all duration-300"
+            onClick={handleClearSearch}
+          />
+        )}
         <input
           type="text"
           className="outline-none border-none w-full"
           placeholder="Search for a task"
+          onChange={(e) => setSearchQuery(e.target.value)}
+          value={searchQuery}
         />
         <CiSearch className="text-gray-700 text-xl" />
       </div>
 
-      <div className="grid grid-cols-7 gap-0 mt-4 w-full">
-        {daysInWeek.map(({ date, day }) => (
+      {debouncedQuery && (
+        <div className="w-full  h-[90vh] mt-16 flex flex-col gap-4 overflow-auto p-4 absolute top-0 left-0 bg-white z-10">
+          {tasks?.map((task) => (
+            <div
+              key={task?._id}
+              className="flex items-center justify-between p-3 border-b border-gray-300 w-full"
+            >
+              <div className="flex items-center relative">
+                <input
+                  type="checkbox"
+                  checked={task?.isCompleted}
+                  className="mr-2 cursor-pointer"
+                  onChange={() => {
+                    handleTaskCompleted(task?._id);
+                  }}
+                />
+                <span
+                  className={`text-md ${
+                    task?.isCompleted ? "line-through text-gray-500" : ""
+                  }`}
+                >
+                  {task?.title}
+                </span>
+              </div>
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  className="text-red-500"
+                  onClick={() => handleDeleteTask(task?._id)}
+                >
+                  <RiDeleteBin6Line className="text-gray-400 text-lg" />
+                </button>
+                <button
+                  className="text-blue-500"
+                  onClick={() => handleEdit(task)}
+                >
+                  <FaEdit className="text-gray-400 text-lg" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="grid grid-cols-7 gap-0 w-full">
+        {daysInWeek?.map(({ date, day }) => (
           <div
             key={date}
-            className="flex flex-col items-center p-4 rounded-md cursor-pointer hover:bg-blue-500 group hover:text-white transition-colors duration-300"
+            className={`flex flex-col items-center p-4 rounded-md cursor-pointer group transition-colors duration-300 ${
+              date === currentDate
+                ? "bg-blue-500 text-white" // Highlight style for today
+                : "hover:bg-blue-500 hover:text-white" // Default hover style for other days
+            }`}
           >
-            <span className="text-[11px] text-gray-400 group-hover:text-white">
+            <span
+              className={`text-[11px] ${
+                date !== currentDate ? "text-gray-400" : "text-white"
+              } group-hover:text-white  `}
+            >
               {day}
             </span>
-            <span className="text-md text-gray-500 group-hover:text-white">
+            <span
+              className={`text-md ${
+                date !== currentDate ? "text-gray-400" : "text-white"
+              } group-hover:text-white`}
+            >
               {date}
             </span>
           </div>
@@ -229,11 +356,11 @@ const Home = () => {
       </div>
 
       {/* Task List */}
-      <div className="mt-0 w-full flex flex-col gap-4">
+      <div className="mt-0 w-full flex flex-col gap-4 max-h-[200px] overflow-y-scroll">
         {data?.map((task) => (
           <div
             key={task.id}
-            className="flex items-center justify-between p-3 border-b-2 border-gray-300"
+            className="w-full flex items-center justify-between p-3 border-b-2 border-gray-300"
           >
             <div className="flex items-center">
               <input
@@ -251,20 +378,20 @@ const Home = () => {
               </span>
             </div>
 
-            {/* Priority div */}
+            {/* Priority div
             <div
-              className={`px-3 py-1 rounded-full text-white font-semibold ${
-                task?.priority === "Low"
+              className={`px-3 py-1 rounded-full w-full text-center text-white font-semibold ${
+                task?.priority === "LOW"
                   ? "bg-green-500"
-                  : task?.priority === "Medium"
+                  : task?.priority?.toUpperCase() === "MEDIUM"
                   ? "bg-yellow-500"
                   : "bg-red-500"
               }`}
             >
               {task?.priority}
-            </div>
+            </div> */}
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-end gap-2">
               <button
                 className="text-red-500"
                 onClick={() => handleDeleteTask(task?._id)}
