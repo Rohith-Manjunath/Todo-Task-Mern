@@ -39,14 +39,39 @@ const getTasks = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+// Fetch single task
+const getTaskById = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const task = await Task.findById(id);
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+    res.status(200).json({
+      success: true,
+      data: task,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
 // Update task
 const updateTask = async (req, res) => {
   try {
-    const task = await Task.findById(req.params.id, req.body, {
-      new: true,
-    });
-    res.status(200).json(task);
+    const { title, description, date, priority } = req.body;
+    const task = await Task.findById(req.params.id);
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+    task.title = title;
+    task.description = description;
+    task.date = date;
+    task.priority = priority;
+    await task.save();
+    res
+      .status(200)
+      .json({ success: true, message: "Task updated successfully" });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
@@ -62,4 +87,26 @@ const deleteTask = async (req, res) => {
   }
 };
 
-module.exports = { createTask, getTasks, updateTask, deleteTask, Home };
+//Handle isCompleted
+const isCompleted = async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id);
+    task.isCompleted = !task.isCompleted;
+    await task.save();
+    res.status(200).json({
+      success: true,
+      message: "Task status updated",
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+module.exports = {
+  createTask,
+  getTasks,
+  updateTask,
+  deleteTask,
+  Home,
+  isCompleted,
+  getTaskById,
+};

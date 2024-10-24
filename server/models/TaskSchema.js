@@ -14,6 +14,10 @@ const taskSchema = new mongoose.Schema({
     enum: ["In Progress", "Completed"],
     default: "In Progress",
   },
+  isCompleted: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const Task = mongoose.model("Task", taskSchema);

@@ -1,4 +1,4 @@
-import { useState } from "react"; // Import useState for state management
+import { useEffect, useState } from "react"; // Import useState for state management
 import { CiSearch } from "react-icons/ci";
 import { FaEdit } from "react-icons/fa";
 import { RiDeleteBin6Line } from "react-icons/ri";
@@ -13,6 +13,15 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { Button } from "../components/ui/button";
+import {
+  useCreateTaskMutation,
+  useDeleteTaskMutation,
+  useGetSingleTaskQuery,
+  useGetTasksQuery,
+  useIsTaskCompletedMutation,
+  useUpdateTaskMutation,
+} from "../Redux/authApi";
+import { useToast } from "@/hooks/use-toast";
 
 // Create an array of objects representing dates and days
 const daysInWeek = [
@@ -36,7 +45,7 @@ const ProgressBar = ({ progress }) => {
   return (
     <div className="w-full bg-gray-200 h-6">
       <div
-        className={`bg-purple-950 h-full`}
+        className="bg-purple-950 h-full transition-width duration-500 ease-in-out" // Apply transition here
         style={{ width: `${progress}%` }} // Set the width based on the progress prop
       />
     </div>
@@ -44,35 +53,117 @@ const ProgressBar = ({ progress }) => {
 };
 
 const Home = () => {
-  const progressValue = 60;
-
   // State for controlling the form visibility
   const [isDrawerOpen, setDrawerOpen] = useState(false);
   const [taskTitle, setTaskTitle] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
   const [taskDate, setTaskDate] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
+  const [taskPriority, setTaskPriority] = useState("");
+  const { data } = useGetTasksQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
+  const [deleteTask] = useDeleteTaskMutation();
+  const [taskComplete] = useIsTaskCompletedMutation();
+  const [udpateTask] = useUpdateTaskMutation();
+  const [id, setId] = useState("");
+  const { data: singleTaskData } = useGetSingleTaskQuery(id);
+  const [createTask] = useCreateTaskMutation();
+  const { toast } = useToast();
+  const [isEditing, setIsEditing] = useState(false);
 
-  const handleCreateTask = () => {
-    // Logic to create a new task
-    console.log("Task Created:", {
-      title: taskTitle,
-      startTime,
-      endTime,
-      date: taskDate,
-      description: taskDescription,
-    });
-
-    // Reset the form fields and close the form
-    setTaskTitle("");
-    setStartTime("");
-    setEndTime("");
-    setTaskDate("");
-    setTaskDescription("");
-    setDrawerOpen(false); // Close the drawer after creating the task
+  const handleDeleteTask = async (id) => {
+    try {
+      const data = await deleteTask({ id }).unwrap();
+      toast({
+        description: data?.message,
+        className: "bg-green-500 text-white font-semibold tracking-wide", // Custom background and text color
+      });
+    } catch (e) {
+      toast({
+        description: e?.data?.message,
+      });
+    }
+  };
+  const handleTaskCompleted = async (id) => {
+    try {
+      const data = await taskComplete({ id }).unwrap();
+      toast({
+        description: data?.message,
+        className: "bg-green-500 text-white font-semibold tracking-wide", // Custom background and text color
+      });
+    } catch (e) {
+      toast({
+        description: e?.data?.message,
+      });
+    }
+  };
+  const handleCreateTask = async () => {
+    try {
+      const data = await createTask({
+        priority: taskPriority,
+        date: "2024-10-25T14:00:00",
+        description: taskDescription,
+        title: taskTitle,
+      }).unwrap();
+      toast({
+        description: data?.message,
+        className: "bg-green-500 text-white font-semibold tracking-wide", // Custom background and text color
+      });
+      setTaskTitle("");
+      setTaskDescription("");
+      setTaskPriority("");
+      setDrawerOpen(false);
+    } catch (e) {
+      toast({
+        description: e?.data?.message,
+      });
+    }
+  };
+  const handleEdit = (task) => {
+    setId(task._id);
+    setTaskTitle(task.title);
+    setTaskDescription(task.description);
+    setTaskPriority(task.priority);
+    setTaskDate(task.date);
+    setIsEditing(true); // Set editing mode
+    setDrawerOpen(true);
   };
 
+  const handleUpdateTask = async (id) => {
+    try {
+      const data = await udpateTask({
+        data: {
+          title: taskTitle,
+          description: taskDescription,
+          priority: taskPriority,
+          date: taskDate,
+        },
+        id,
+      }).unwrap();
+
+      toast({
+        description: data?.message,
+      });
+      setTaskTitle("");
+      setTaskDescription("");
+      setTaskPriority("");
+      setTaskDate("");
+      setIsEditing(false);
+      setDrawerOpen(false);
+      setId("");
+    } catch (e) {
+      toast({
+        description: e?.data?.message,
+      });
+    }
+  };
+  // Calculate total and completed tasks
+  const totalTasks = data?.length;
+  const completedTasks = data?.filter((task) => task?.isCompleted).length;
+
+  // Calculate progress percentage (Completed Tasks / Total Tasks * 100)
+  const progressValue =
+    totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
   return (
     <div className="w-full max-w-[900px] h-[100vh] flex items-center justify-start pt-4 flex-col gap-4 mx-auto border-none outline-none">
       <div className="flex items-center justify-between gap-4 border w-full border-gray-300 rounded-md px-4 py-2">
@@ -104,18 +195,22 @@ const Home = () => {
       <div className="mt-2 w-full flex justify-between gap-8">
         {/* Completed Tasks */}
         <div className="flex flex-col items-center bg-green-100 p-4 rounded-md w-1/2">
-          <h3 className="text-lg text-[14px] font-semibold ">Task Complete</h3>
+          <h3 className="text-lg text-[14px] font-semibold">Task Complete</h3>
           <div className="flex items-end justify-center gap-2">
-            <span className="font-semibold text-[30px]">50</span>
+            <span className="font-semibold text-[30px]">
+              {data?.filter((task) => task?.isCompleted).length}
+            </span>
             <p className="text-gray-500 text-[13px]">This week</p>
           </div>
         </div>
 
         {/* Pending Tasks */}
         <div className="flex flex-col items-center bg-red-100 p-4 rounded-md w-1/2">
-          <h3 className="text-lg text-[14px] font-semibold ">Task Pending</h3>
+          <h3 className="text-lg text-[14px] font-semibold">Task Pending</h3>
           <div className="flex items-end justify-center gap-2">
-            <span className="font-semibold text-[30px]">50</span>
+            <span className="font-semibold text-[30px]">
+              {data?.filter((task) => !task?.isCompleted).length}
+            </span>
             <p className="text-gray-500 text-[13px]">This week</p>
           </div>
         </div>
@@ -135,7 +230,7 @@ const Home = () => {
 
       {/* Task List */}
       <div className="mt-0 w-full flex flex-col gap-4">
-        {tasks.map((task) => (
+        {data?.map((task) => (
           <div
             key={task.id}
             className="flex items-center justify-between p-3 border-b-2 border-gray-300"
@@ -143,23 +238,43 @@ const Home = () => {
             <div className="flex items-center">
               <input
                 type="checkbox"
-                checked={task.completed}
+                checked={task?.isCompleted}
                 className="mr-2"
                 onChange={() => {
-                  // Handle check change
+                  handleTaskCompleted(task?._id);
                 }}
               />
               <span
-                className={`text-md ${task.completed ? "line-through" : ""}`}
+                className={`text-md ${task?.isCompleted ? "line-through" : ""}`}
               >
-                {task.title}
+                {task?.title}
               </span>
             </div>
+
+            {/* Priority div */}
+            <div
+              className={`px-3 py-1 rounded-full text-white font-semibold ${
+                task?.priority === "Low"
+                  ? "bg-green-500"
+                  : task?.priority === "Medium"
+                  ? "bg-yellow-500"
+                  : "bg-red-500"
+              }`}
+            >
+              {task?.priority}
+            </div>
+
             <div className="flex items-center gap-2">
-              <button className="text-red-500">
+              <button
+                className="text-red-500"
+                onClick={() => handleDeleteTask(task?._id)}
+              >
                 <RiDeleteBin6Line className="text-gray-400 text-lg" />
               </button>
-              <button className="text-blue-500">
+              <button
+                className="text-blue-500"
+                onClick={() => handleEdit(task)}
+              >
                 <FaEdit className="text-gray-400 text-lg" />
               </button>
             </div>
@@ -170,7 +285,9 @@ const Home = () => {
       {/* Floating Action Button */}
       <div
         className="w-14 h-14 hover:cursor-pointer rounded-full bg-blue-500 text-white font-semibold flex items-center justify-center"
-        onClick={() => setDrawerOpen(true)}
+        onClick={() => {
+          setDrawerOpen(true);
+        }}
       >
         <span className="text-3xl">+</span>
       </div>
@@ -190,22 +307,14 @@ const Home = () => {
               onChange={(e) => setTaskTitle(e.target.value)}
               className="p-2 border border-gray-300 rounded outline-none"
             />
-            <div className="grid grid-cols-2 w-full gap-2">
-              <input
-                type="text"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="p-2 border border-gray-300 rounded outline-none"
-                placeholder="Start"
-              />
-              <input
-                type="text"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="p-2 border border-gray-300 rounded outline-none"
-                placeholder="Ends"
-              />
-            </div>
+            <input
+              type="text"
+              placeholder="Task Priority [Low, Medium, High]"
+              value={taskPriority}
+              onChange={(e) => setTaskPriority(e.target.value)}
+              className="p-2 border border-gray-300 rounded outline-none"
+            />
+            <div className="grid grid-cols-2 w-full gap-2"></div>
             <input
               type="date"
               value={taskDate}
@@ -214,7 +323,7 @@ const Home = () => {
             />
             <textarea
               rows={5}
-              placeholder="Task Description"
+              placeholder="Task Description (Optional)"
               value={taskDescription}
               onChange={(e) => setTaskDescription(e.target.value)}
               className="p-2 border border-gray-300 rounded outline-none resize-none"
@@ -222,8 +331,17 @@ const Home = () => {
           </div>
 
           <DrawerFooter>
-            <Button className="bg-blue-500" onClick={handleCreateTask}>
-              Create Task
+            <Button
+              className="bg-blue-500"
+              onClick={
+                isEditing
+                  ? () => {
+                      handleUpdateTask(id);
+                    }
+                  : handleCreateTask
+              }
+            >
+              {isEditing ? "Update Task" : "Create Task"}
             </Button>
           </DrawerFooter>
         </DrawerContent>
