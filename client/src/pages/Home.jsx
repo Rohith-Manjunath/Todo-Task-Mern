@@ -60,19 +60,20 @@ const Home = () => {
   const [taskDescription, setTaskDescription] = useState("");
   const [taskPriority, setTaskPriority] = useState("");
   const [filterDate, setFilterDate] = useState(dayjs());
-  const { data } = useGetTasksQuery(undefined, {
+  const { data, isLoading } = useGetTasksQuery(undefined, {
     refetchOnMountOrArgChange: true,
   });
   const [deleteTask] = useDeleteTaskMutation();
   const [taskComplete] = useIsTaskCompletedMutation();
-  const [udpateTask] = useUpdateTaskMutation();
+  const [udpateTask, { isLoading: updateLoading }] = useUpdateTaskMutation();
   const [id, setId] = useState("");
-  const [createTask] = useCreateTaskMutation();
+  const [createTask, { isLoading: createLoading }] = useCreateTaskMutation();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [tasks, setTasks] = useState([]);
   const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [searchLoading, setSearchLoading] = useState(false);
 
   const handleDeleteTask = async (id) => {
     try {
@@ -203,8 +204,9 @@ const Home = () => {
 
   const getData = async (query) => {
     try {
+      setSearchLoading(true);
       let response = await fetch(
-        `http://localhost:4000/api/tasks/search?title=${query}`,
+        `https://todo-task-mern.onrender.com/api/tasks/search?title=${query}`,
         {
           method: "GET",
           headers: {
@@ -213,8 +215,10 @@ const Home = () => {
         }
       );
       let data = await response.json();
-      setTasks(data.data);
+      setTasks(data?.data);
+      setSearchLoading(false);
     } catch (error) {
+      setSearchLoading(false);
       console.error("Error fetching tasks:", error);
     }
   };
@@ -249,6 +253,7 @@ const Home = () => {
             handleEdit={handleEdit}
             handleDeleteTask={handleDeleteTask}
             FaEdit={FaEdit}
+            isLoading={searchLoading}
           />
         )}
         <DaysInWeeksContainer
@@ -279,6 +284,7 @@ const Home = () => {
           handleDeleteTask={handleDeleteTask}
           handleEdit={handleEdit}
           handleTaskCompleted={handleTaskCompleted}
+          isLoading={isLoading}
         />
 
         {/* Floating Action Button */}
@@ -312,6 +318,8 @@ const Home = () => {
           handleCreateTask={handleCreateTask}
           handleUpdateTask={handleUpdateTask}
           id={id}
+          createLoading={createLoading}
+          updateLoading={updateLoading}
         />
       </div>
     </>

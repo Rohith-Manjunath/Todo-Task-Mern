@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-const devUrl = "http://localhost:4000/api/";
+const devUrl = "https://todo-task-mern.onrender.com/api/";
 
 export const myApi = createApi({
   reducerPath: "api",

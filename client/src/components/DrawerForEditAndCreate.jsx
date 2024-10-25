@@ -7,6 +7,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Button } from "./ui/button";
+import { Box, CircularProgress } from "@mui/material";
 
 const DrawerForEditAndCreate = ({
   isDrawerOpen,
@@ -23,6 +24,8 @@ const DrawerForEditAndCreate = ({
   handleCreateTask,
   handleUpdateTask,
   id,
+  createLoading,
+  updateLoading,
 }) => {
   return (
     <Drawer open={isDrawerOpen} onOpenChange={setDrawerOpen}>
@@ -130,7 +133,13 @@ const DrawerForEditAndCreate = ({
             className="bg-blue-500 hover:bg-blue-400"
             onClick={isEditing ? () => handleUpdateTask(id) : handleCreateTask}
           >
-            {isEditing ? "Update Task" : "Create Task"}
+            {isEditing
+              ? updateLoading
+                ? "Updating..."
+                : "Update Task"
+              : createLoading
+              ? "Creating..."
+              : "Create Task"}
           </Button>
         </DrawerFooter>
       </DrawerContent>
