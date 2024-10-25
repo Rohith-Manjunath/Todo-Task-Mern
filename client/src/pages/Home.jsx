@@ -20,33 +20,7 @@ import TasksContainer from "../components/TasksContainer";
 import TaskList from "../components/TaskList";
 import DrawerForEditAndCreate from "../components/DrawerForEditAndCreate";
 import ProgressBar from "../components/ProgressBar";
-import WelcomeModal from "../components/WelcomeModal";
-
-// Function to get dates from last Sunday to next Saturday
-const getWeekDates = () => {
-  const today = new Date();
-  const currentDay = today.getDay();
-
-  // Calculate the difference to find the previous Monday
-  const daysUntilMonday = (currentDay === 0 ? -6 : 1) - currentDay; // If Sunday (0), move back to Monday (-6), otherwise move to last Monday
-
-  // Get last Monday's date
-  const lastMonday = new Date(today);
-  lastMonday.setDate(today.getDate() + daysUntilMonday);
-
-  // Create array to store dates for the week
-  const weekDates = [];
-  for (let i = 0; i < 7; i++) {
-    const day = new Date(lastMonday);
-    day.setDate(lastMonday.getDate() + i);
-    weekDates.push({
-      date: day.getDate(),
-      day: day.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase(),
-    });
-  }
-
-  return weekDates;
-};
+import { getWeekDates } from "../helper/getWeeks";
 
 const daysInWeek = getWeekDates();
 // Get the current date
@@ -59,7 +33,6 @@ const Home = () => {
   const [taskDate, setTaskDate] = useState(dayjs()); // Initialize with current date using dayjs
   const [taskDescription, setTaskDescription] = useState("");
   const [taskPriority, setTaskPriority] = useState("");
-  const [filterDate, setFilterDate] = useState(dayjs());
   const { data, isLoading } = useGetTasksQuery(undefined, {
     refetchOnMountOrArgChange: true,
   });
@@ -206,7 +179,7 @@ const Home = () => {
     try {
       setSearchLoading(true);
       let response = await fetch(
-        `https://todo-task-mern.onrender.com/api/tasks/search?title=${query}`,
+        `${import.meta.env.VITE_BACKEND_URL}/api/tasks/search?title=${query}`,
         {
           method: "GET",
           headers: {
