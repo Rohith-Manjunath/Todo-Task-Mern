@@ -9,7 +9,7 @@ const {
   isCompleted,
   getTaskById,
   deleteTask,
-} = require("../controllers/taskController");
+} = require("../controllers/TaskController");
 const router = express.Router();
 
 router.get("/", Home);
