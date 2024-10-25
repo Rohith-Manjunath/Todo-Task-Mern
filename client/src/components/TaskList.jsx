@@ -9,7 +9,7 @@ const TaskList = ({
   FaEdit,
 }) => {
   return (
-    <div className="mt-0 w-full max-h-[200px] overflow-y-scroll">
+    <div className="mt-0 w-[95%] sm:w-full max-h-[200px] overflow-y-scroll">
       <table className="min-w-full border-collapse">
         <tbody>
           {data?.map((task) => (

@@ -254,12 +254,12 @@ const Home = () => {
 
       <TasksContainer data={data} />
 
-      <div className="flex items-start justify-center flex-col gap-3 w-full">
+      <div className="flex items-start justify-center flex-col gap-3 w-[90%] lg:w-full">
         <h4 className="font-semibold text-lg">Weekly Progress</h4>
         <ProgressBar progress={progressValue} />
       </div>
 
-      <div className="w-full flex items-center justify-center gap-4">
+      <div className="w-[90%] lg:w-full flex items-center justify-center gap-4">
         <div className="w-full flex items-center justify-between">
           <h5 className="font-semibold text-lg">Tasks</h5>
           <span className="text-[13px] text-blue-500">View All</span>

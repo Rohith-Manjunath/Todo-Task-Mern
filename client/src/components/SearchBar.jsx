@@ -9,7 +9,7 @@ const SearchBar = ({
   CiSearch,
 }) => {
   return (
-    <div className="flex items-center justify-between gap-4 border w-full border-gray-300 rounded-md px-4 py-2">
+    <div className="flex items-center justify-between gap-4 border w-[90%] lg:w-full border-gray-300 rounded-md px-4 py-2">
       {debouncedQuery && (
         <FaArrowLeft
           className="cursor-pointer active:scale:90 transition-all duration-300"

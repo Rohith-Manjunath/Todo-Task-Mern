@@ -6,7 +6,7 @@ const TasksContainer = ({ data }) => {
   const pendingTasksCount = data?.filter((task) => !task?.isCompleted).length;
 
   return (
-    <div className="mt-2 w-full flex justify-between gap-8">
+    <div className="mt-2 w-[90%] md:w-full flex justify-between gap-8 md:px-4">
       <TaskSummary
         title="Task Complete"
         count={completedTasksCount}

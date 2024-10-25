@@ -2,7 +2,7 @@ import React from "react";
 
 const DaysInWeeksContainer = ({ daysInWeek, currentDate }) => {
   return (
-    <div className="grid grid-cols-7 gap-0 w-full">
+    <div className="grid grid-cols-7 gap-0 w-[90%] lg:w-full">
       {daysInWeek?.map(({ date, day }) => (
         <div
           key={date}
