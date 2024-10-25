@@ -1,14 +1,14 @@
 const Task = require("../models/TaskSchema");
 
 //Home
-const Home = async (req, res) => {
+exports.Home = async (req, res) => {
   res.status(200).json({
     success: true,
     message: "Welcome to the Task Manager API",
   });
 };
 
-const createTask = async (req, res) => {
+exports.createTask = async (req, res) => {
   try {
     const { title, description, date, priority } = req.body;
 
@@ -55,7 +55,7 @@ const createTask = async (req, res) => {
 };
 
 // Fetch all tasks
-const getTasks = async (req, res) => {
+exports.getTasks = async (req, res) => {
   try {
     const tasks = await Task.find();
     res.status(200).json(tasks);
@@ -64,7 +64,7 @@ const getTasks = async (req, res) => {
   }
 };
 // Fetch single task
-const getTaskById = async (req, res) => {
+exports.getTaskById = async (req, res) => {
   try {
     const id = req.params.id;
     const task = await Task.findById(id);
@@ -81,7 +81,7 @@ const getTaskById = async (req, res) => {
 };
 
 // Update task
-const updateTask = async (req, res) => {
+exports.updateTask = async (req, res) => {
   try {
     const { title, description, date, priority } = req.body;
 
@@ -133,7 +133,7 @@ const updateTask = async (req, res) => {
 };
 
 // Delete task
-const deleteTask = async (req, res) => {
+exports.deleteTask = async (req, res) => {
   try {
     await Task.deleteOne({ _id: req.params.id });
     res.status(200).json({ message: "Task deleted" });
@@ -143,7 +143,7 @@ const deleteTask = async (req, res) => {
 };
 
 // Handle isCompleted
-const isCompleted = async (req, res) => {
+exports.isCompleted = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
 
@@ -164,7 +164,7 @@ const isCompleted = async (req, res) => {
 };
 
 // Search tasks by title
-const searchTasks = async (req, res) => {
+exports.searchTasks = async (req, res) => {
   try {
     const searchQuery = req.query.title; // Extract search query from URL parameters
     console.log("searchQuery", req.query);
@@ -197,7 +197,7 @@ const searchTasks = async (req, res) => {
   }
 };
 
-const filterTasksByDate = async (req, res) => {
+exports.filterTasksByDate = async (req, res) => {
   try {
     const dateQuery = req.query.date; // Extract date query from URL parameters
     if (!dateQuery) {
@@ -235,16 +235,4 @@ const filterTasksByDate = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
-};
-
-module.exports = {
-  createTask,
-  getTasks,
-  updateTask,
-  deleteTask,
-  Home,
-  isCompleted,
-  getTaskById,
-  searchTasks,
-  filterTasksByDate,
 };
