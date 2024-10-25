@@ -18,16 +18,16 @@ const WelcomeModal = () => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-      <div className="w-full h-full flex">
+      <div className="w-full h-full flex flex-col">
         {/* Left Side (Blue Background) */}
-        <div className="w-7/12 bg-blue-600"></div>
+        <div className="w-full h-screen bg-blue-600"></div>
 
         {/* Right Side (Content Area) */}
-        <div className="w-5/12 bg-white flex flex-col justify-center items-center p-10">
-          <h1 className="text-3xl font-bold text-gray-800 mb-4">
+        <div className="w-full bg-white flex flex-col justify-center items-center p-10">
+          <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 mb-4 text-center ">
             Manage What To Do
           </h1>
-          <p className="text-gray-600 text-center mb-6">
+          <p className="text-gray-600 text-center mb-6 text-[13px] md:text-[16px]">
             The best way to manage what you have to do, don&apos;t forget your
             plans.
           </p>
