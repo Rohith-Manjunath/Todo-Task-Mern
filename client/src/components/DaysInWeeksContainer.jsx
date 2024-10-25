@@ -8,8 +8,8 @@ const DaysInWeeksContainer = ({ daysInWeek, currentDate }) => {
           key={date}
           className={`flex flex-col items-center p-4 rounded-md cursor-pointer group transition-colors duration-300 ${
             date === currentDate
-              ? "bg-blue-500 text-white" // Highlight style for today
-              : "hover:bg-blue-500 hover:text-white" // Default hover style for other days
+              ? "bg-blue-600 text-white" // Highlight style for today
+              : "hover:bg-blue-600 hover:text-white" // Default hover style for other days
           }`}
           onClick={() => {
             const formattedDate = `${String(date).padStart(2, "0")}/10/2024`; // Format to DD/MM/YYYY

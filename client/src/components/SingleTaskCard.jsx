@@ -20,7 +20,7 @@ const SingleTaskCard = ({
           }}
         />
         <span
-          className={`text-[13px] sm:text-md ${
+          className={`text-[13px] sm:text-md md:text-[15px] ${
             task?.isCompleted ? "line-through" : ""
           }`}
         >
@@ -29,7 +29,7 @@ const SingleTaskCard = ({
       </td>
 
       {/* Display the task date in DD/MM/YYYY format */}
-      <td className="p-3 text-gray-500 text-[13px] sm:text-md">
+      <td className="p-3 text-gray-500 text-[13px] sm:text-md md:text-[15px]">
         {(() => {
           const date = new Date(task.date);
           const day = String(date.getDate()).padStart(2, "0");

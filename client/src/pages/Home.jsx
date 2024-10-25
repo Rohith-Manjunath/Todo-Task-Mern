@@ -20,6 +20,7 @@ import TasksContainer from "../components/TasksContainer";
 import TaskList from "../components/TaskList";
 import DrawerForEditAndCreate from "../components/DrawerForEditAndCreate";
 import ProgressBar from "../components/ProgressBar";
+import WelcomeModal from "../components/WelcomeModal";
 
 // Function to get dates from last Sunday to next Saturday
 const getWeekDates = () => {
@@ -229,86 +230,91 @@ const Home = () => {
   const progressValue =
     totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
   return (
-    <div className="w-full  max-w-[900px] h-[100vh] flex items-center justify-start pt-4 flex-col gap-4 mx-auto border-none outline-none">
-      <SearchBar
-        FaArrowLeft={FaArrowLeft}
-        debouncedQuery={debouncedQuery}
-        handleClearSearch={handleClearSearch}
-        setSearchQuery={setSearchQuery}
-        searchQuery={searchQuery}
-        CiSearch={CiSearch}
-      />
-
-      {debouncedQuery && (
-        <SearchQueryTasks
-          tasks={tasks}
-          handleTaskCompleted={handleTaskCompleted}
-          RiDeleteBin6Line={RiDeleteBin6Line}
-          handleEdit={handleEdit}
-          handleDeleteTask={handleDeleteTask}
-          FaEdit={FaEdit}
+    <>
+      <div className="w-full  max-w-[900px] h-[100vh] flex items-center justify-start pt-4 flex-col gap-4 mx-auto border-none outline-none">
+        <SearchBar
+          FaArrowLeft={FaArrowLeft}
+          debouncedQuery={debouncedQuery}
+          handleClearSearch={handleClearSearch}
+          setSearchQuery={setSearchQuery}
+          searchQuery={searchQuery}
+          CiSearch={CiSearch}
         />
-      )}
-      <DaysInWeeksContainer daysInWeek={daysInWeek} currentDate={currentDate} />
-      {/* Task Containers */}
 
-      <TasksContainer data={data} />
+        {debouncedQuery && (
+          <SearchQueryTasks
+            tasks={tasks}
+            handleTaskCompleted={handleTaskCompleted}
+            RiDeleteBin6Line={RiDeleteBin6Line}
+            handleEdit={handleEdit}
+            handleDeleteTask={handleDeleteTask}
+            FaEdit={FaEdit}
+          />
+        )}
+        <DaysInWeeksContainer
+          daysInWeek={daysInWeek}
+          currentDate={currentDate}
+        />
+        {/* Task Containers */}
 
-      <div className="flex items-start justify-center flex-col gap-3 w-[90%] lg:w-full">
-        <h4 className="font-semibold text-lg">Weekly Progress</h4>
-        <ProgressBar progress={progressValue} />
-      </div>
+        <TasksContainer data={data} />
 
-      <div className="w-[90%] lg:w-full flex items-center justify-center gap-4">
-        <div className="w-full flex items-center justify-between">
-          <h5 className="font-semibold text-lg">Tasks</h5>
-          <span className="text-[13px] text-blue-500">View All</span>
+        <div className="flex items-start justify-center flex-col gap-3 w-[90%] lg:w-full">
+          <h4 className="font-semibold text-lg">Weekly Progress</h4>
+          <ProgressBar progress={progressValue} />
         </div>
+
+        <div className="w-[90%] lg:w-full flex items-center justify-center gap-4">
+          <div className="w-full flex items-center justify-between">
+            <h5 className="font-semibold text-lg">Tasks</h5>
+            <span className="text-[13px] text-blue-500">View All</span>
+          </div>
+        </div>
+
+        {/* Task List */}
+        <TaskList
+          FaEdit={FaEdit}
+          RiDeleteBin6Line={RiDeleteBin6Line}
+          data={data}
+          handleDeleteTask={handleDeleteTask}
+          handleEdit={handleEdit}
+          handleTaskCompleted={handleTaskCompleted}
+        />
+
+        {/* Floating Action Button */}
+        <div
+          className="w-14 h-14 hover:cursor-pointer rounded-full bg-blue-600 text-white font-semibold flex items-center justify-center"
+          onClick={() => {
+            setDrawerOpen(true);
+            setTaskTitle("");
+            setTaskDescription("");
+            setTaskPriority("");
+            setTaskDate(dayjs()); // Reset to current date
+            setIsEditing(false);
+          }}
+        >
+          <span className="text-3xl">+</span>
+        </div>
+
+        {/* Drawer Component */}
+        <DrawerForEditAndCreate
+          isDrawerOpen={isDrawerOpen}
+          setDrawerOpen={setDrawerOpen}
+          isEditing={isEditing}
+          taskTitle={taskTitle}
+          setTaskTitle={setTaskTitle}
+          taskPriority={taskPriority}
+          setTaskPriority={setTaskPriority}
+          taskDate={taskDate}
+          setTaskDate={setTaskDate}
+          taskDescription={taskDescription}
+          setTaskDescription={setTaskDescription}
+          handleCreateTask={handleCreateTask}
+          handleUpdateTask={handleUpdateTask}
+          id={id}
+        />
       </div>
-
-      {/* Task List */}
-      <TaskList
-        FaEdit={FaEdit}
-        RiDeleteBin6Line={RiDeleteBin6Line}
-        data={data}
-        handleDeleteTask={handleDeleteTask}
-        handleEdit={handleEdit}
-        handleTaskCompleted={handleTaskCompleted}
-      />
-
-      {/* Floating Action Button */}
-      <div
-        className="w-14 h-14 hover:cursor-pointer rounded-full bg-blue-500 text-white font-semibold flex items-center justify-center"
-        onClick={() => {
-          setDrawerOpen(true);
-          setTaskTitle("");
-          setTaskDescription("");
-          setTaskPriority("");
-          setTaskDate(dayjs()); // Reset to current date
-          setIsEditing(false);
-        }}
-      >
-        <span className="text-3xl">+</span>
-      </div>
-
-      {/* Drawer Component */}
-      <DrawerForEditAndCreate
-        isDrawerOpen={isDrawerOpen}
-        setDrawerOpen={setDrawerOpen}
-        isEditing={isEditing}
-        taskTitle={taskTitle}
-        setTaskTitle={setTaskTitle}
-        taskPriority={taskPriority}
-        setTaskPriority={setTaskPriority}
-        taskDate={taskDate}
-        setTaskDate={setTaskDate}
-        taskDescription={taskDescription}
-        setTaskDescription={setTaskDescription}
-        handleCreateTask={handleCreateTask}
-        handleUpdateTask={handleUpdateTask}
-        id={id}
-      />
-    </div>
+    </>
   );
 };
 
